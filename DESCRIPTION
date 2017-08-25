@@ -2,11 +2,14 @@ Package: fars
 Type: Package
 Title: Helper package to process data from accidents for a US states by year
 Version: 0.1.0
-Author: József Varga
-Maintainer: József Varga <31209755+cogitoergoread@users.noreply.github.com>
+Author: Jozsef Varga
+Maintainer: Jozsef Varga <31209755+cogitoergoread@users.noreply.github.com>
 Description: This package access yearly data from accidents in US states.
   Helps to organize and plot the sample data by state and year.
 License: CC0
 Encoding: UTF-8
 LazyData: true
-Suggests: testthat
+Suggests: testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
