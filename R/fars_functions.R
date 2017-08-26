@@ -18,12 +18,12 @@
 #' @importFrom readr read_csv
 #' @importFrom dplyr tbl_df
 fars_read <- function(filename) {
-        if(!file.exists(filename))
-                stop("file '", filename, "' does not exist")
-        data <- suppressMessages({
-                readr::read_csv(filename, progress = FALSE)
-        })
-        dplyr::tbl_df(data)
+  if (!file.exists(filename))
+    stop("file '", filename, "' does not exist")
+  data <- suppressMessages({
+    readr::read_csv(filename, progress = FALSE)
+  })
+  dplyr::tbl_df(data)
 }
 
 #' Create a specific filename for the year
@@ -45,8 +45,8 @@ fars_read <- function(filename) {
 #' }
 #'
 make_filename <- function(year) {
-        year <- as.integer(year)
-        sprintf("accident_%d.csv.bz2", year)
+  year <- as.integer(year)
+  sprintf("accident_%d.csv.bz2", year)
 }
 
 #' Reads the data from a file for some years
@@ -62,22 +62,22 @@ make_filename <- function(year) {
 #'
 #' @examples
 #' \dontrun{
-#' fars_read(years=c(2014,2015))
+#' fars_read_years(years=c(2014,2015))
 #' }
 #'
 #' @importFrom dplyr mutate_ select_
 fars_read_years <- function(years) {
-        lapply(years, function(year) {
-                file <- make_filename(year)
-                tryCatch({
-                        dat <- fars_read(file)
-                        dplyr::mutate_( dat, year = ~ year) %>%
-                                dplyr::select_(.dots = c('MONTH', 'year'))
-                }, error = function(e) {
-                        warning("invalid year: ", year)
-                        return(NULL)
-                })
-        })
+  lapply(years, function(year) {
+    file <- make_filename(year)
+    tryCatch({
+      dat <- fars_read(file)
+      dplyr::mutate_(.data = dat, year = ~ year) %>%
+        dplyr::select_(.dots = c('MONTH', 'year'))
+    }, error = function(e) {
+      warning("invalid year: ", year)
+      return(NULL)
+    })
+  })
 }
 
 #' Summarise the data for the list of years
@@ -103,11 +103,11 @@ fars_read_years <- function(years) {
 #' @importFrom tidyr spread_
 #' @importFrom magrittr "%>%"
 fars_summarize_years <- function(years) {
-        dat_list <- fars_read_years(years)
-        dplyr::bind_rows(dat_list) %>%
-                dplyr::group_by_(~ year, ~ MONTH) %>%
-                dplyr::summarize_(n = ~ n()) %>%
-                tidyr::spread_(key_col ='year', value_col = 'n')
+  dat_list <- fars_read_years(years)
+  dplyr::bind_rows(dat_list) %>%
+    dplyr::group_by_( ~ year, ~ MONTH) %>%
+    dplyr::summarize_(n = ~ n()) %>%
+    tidyr::spread_(key_col = 'year', value_col = 'n')
 }
 
 #' Plots a map of the accidents for a US state of a year
@@ -130,22 +130,25 @@ fars_summarize_years <- function(years) {
 #' @importFrom graphics points
 #' @importFrom dplyr filter_
 fars_map_state <- function(state.num, year) {
-        filename <- make_filename(year)
-        data <- fars_read(filename)
-        state.num <- as.integer(state.num)
+  filename <- make_filename(year)
+  data <- fars_read(filename)
+  state.num <- as.integer(state.num)
 
-        if(!(state.num %in% unique(data$STATE)))
-                stop("invalid STATE number: ", state.num)
-        data.sub <- dplyr::filter_(data, ~ STATE == state.num)
-        if(nrow(data.sub) == 0L) {
-                message("no accidents to plot")
-                return(invisible(NULL))
-        }
-        is.na(data.sub$LONGITUD) <- data.sub$LONGITUD > 900
-        is.na(data.sub$LATITUDE) <- data.sub$LATITUDE > 90
-        with(data.sub, {
-                maps::map("state", ylim = range(LATITUDE, na.rm = TRUE),
-                          xlim = range(LONGITUD, na.rm = TRUE))
-                graphics::points(LONGITUD, LATITUDE, pch = 46)
-        })
+  if (!(state.num %in% unique(data$STATE)))
+    stop("invalid STATE number: ", state.num)
+  data.sub <- dplyr::filter_(data, ~ STATE == state.num)
+  if (nrow(data.sub) == 0L) {
+    message("no accidents to plot")
+    return(invisible(NULL))
+  }
+  is.na(data.sub$LONGITUD) <- data.sub$LONGITUD > 900
+  is.na(data.sub$LATITUDE) <- data.sub$LATITUDE > 90
+  with(data.sub, {
+    maps::map(
+      "state",
+      ylim = range(LATITUDE, na.rm = TRUE),
+      xlim = range(LONGITUD, na.rm = TRUE)
+    )
+    graphics::points(LONGITUD, LATITUDE, pch = 46)
+  })
 }

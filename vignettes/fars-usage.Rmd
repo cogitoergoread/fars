@@ -10,8 +10,127 @@ vignette: >
 ---
 
 The package supports summary and plot functions for the data of US accidents.
-There are two important entry points:
 
-* `fars_summarize_years()` produces a table for the monthly number of accidents by years
-* `fars_map_state()` plots a map of the US state for a given year.
+## Data: US Accidents
 
+The package operates on the data from the US National Highway 
+Traffic Safety Administration's Fatality Analysis Reporting System, 
+which is a nationwide census providing the American public yearly 
+data regarding fatal injuries suffered in motor vehicle traffic crashes.
+
+
+## Package content
+
+The following functions are for loading a specific year's data from the compressed data file:
+
+* `fars_read(filename)` to read data from a file
+* `make_filename(year)` to create a specific filename for the year datafile
+* `fars_read_years(years)` to read data forone or more years
+
+There are two important entry points for displaying the statistical data:
+
+* `fars_summarize_years(years)` produces a table for the monthly number of accidents by years
+* `fars_map_state(state.num, year)` plots a map of the US state for a given year
+
+Important to note, the datafiles should be at the working directory!
+
+### Create a filename with make_filename()
+
+It is important to properly follow the naming convention of the datafiles.
+The function returns the name of the datafile calculated from the year parameter.
+
+Usage:
+
+```{r, eval = FALSE}
+make_filename(2014)
+[1] "accident_2014.csv.bz2"
+```
+
+The result of this function is used by `fars_read_years()` and `fars_map_state`.
+
+### Read one years data with fars_read()
+
+The function tries to read the compressed CSV fájl.
+If no files can be read an error is thrown.
+
+The function has no path parametres, so the datafiles should be at the workig directory.
+
+The function returs a data frame, containing the accidents data from the required year.
+
+Usage:
+
+```{r, eval = FALSE}
+accdf<-fars_read(filename="accident_2014.csv.bz2")
+str(accdf)
+Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	30056 obs. of  50 variables:
+ $ STATE     : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ ST_CASE   : int  10001 10002 10003 10004 10005 10006 10007 10008 10009 10010 ...
+ $ VE_TOTAL  : int  1 1 2 3 1 1 3 2 3 2 ...
+...
+```
+
+The result of this function is used by `fars_read_years()` and `fars_map_state`.
+
+### Read one or more years data with fars_read_years()
+
+The function reads the data from the specified years, then keeps the year and month infromation. The function is a vectorized wrapper for `make_filename()` and `fars_read()`.
+
+The result of the function is a data frame with two columns for the month and year of a sample.
+
+Usage:
+
+```{r, eval = FALSE}
+accdm<-fars_read_years(years=c(2014,2015))
+str(accdm)
+List of 2
+ $ :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	30056 obs. of  2 variables:
+  ..$ MONTH: int [1:30056] 1 1 1 1 1 1 1 1 1 1 ...
+  ..$ year : num [1:30056] 2014 2014 2014 2014 2014 ...
+ $ :Classes ‘tbl_df’, ‘tbl’ and 'data.frame':	32166 obs. of  2 variables:
+  ..$ MONTH: int [1:32166] 1 1 1 1 1 1 1 1 1 1 ...
+  ..$ year : num [1:32166] 2015 2015 2015 2015 2015 ...
+```
+
+The result of the functin is used by `fars_summarize_years()` 
+
+### Display monthly data with fars_summarize_years()
+
+The function aggregates the monthly number of accidents by year.
+
+Summarises the data supplied by `fars_read_years()`.
+
+The result is a data frame  with 12 rows for each month. The columns contains the number of accidents by year.
+
+Usage:
+
+```{r, eval = FALSE}
+accsumm<-fars_summarize_years(years=c(2014,2015))
+accsumm
+# A tibble: 12 x 3
+   MONTH `2014` `2015`
+ * <int>  <int>  <int>
+ 1     1   2168   2368
+ 2     2   1893   1968
+ 3     3   2245   2385
+ 4     4   2308   2430
+ 5     5   2596   2847
+ 6     6   2583   2765
+ 7     7   2696   2998
+ 8     8   2800   3016
+ 9     9   2618   2865
+10    10   2831   3019
+11    11   2714   2724
+12    12   2604   2781
+```
+
+### Plot a map with fars_map_state()
+
+The function plots the locations of the accidents in a US state to a map.
+
+It is based on the data read by `fars_read()` for a filename supplied by `make_filename()` .
+
+Usage:
+
+```{r, eval = FALSE}
+fars_map_state(state.num=1,year=2015)
+```

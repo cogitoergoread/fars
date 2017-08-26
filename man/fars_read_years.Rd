@@ -20,7 +20,7 @@ This function tries to collect the data for one or more years from the datafile.
 }
 \examples{
 \dontrun{
-fars_read(years=c(2014,2015))
+fars_read_years(years=c(2014,2015))
 }
 
 }
