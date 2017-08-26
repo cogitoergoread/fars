@@ -21,6 +21,8 @@ The filename is useful for processing the fars_data.zip dataset.
 The data of a given year is in a separate file in fars_data.zip .
 }
 \examples{
+\dontrun{
 make_filename(2014)
+}
 
 }

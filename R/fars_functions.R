@@ -40,7 +40,9 @@ fars_read <- function(filename) {
 #' fars_data.zip dataset.
 #'
 #' @examples
+#' \dontrun{
 #' make_filename(2014)
+#' }
 #'
 make_filename <- function(year) {
         year <- as.integer(year)
@@ -63,14 +65,14 @@ make_filename <- function(year) {
 #' fars_read(years=c(2014,2015))
 #' }
 #'
-#' @importFrom dplyr mutate select
+#' @importFrom dplyr mutate_ select_
 fars_read_years <- function(years) {
         lapply(years, function(year) {
                 file <- make_filename(year)
                 tryCatch({
                         dat <- fars_read(file)
-                        dplyr::mutate(dat, year = year) %>%
-                                dplyr::select(MONTH, year)
+                        dplyr::mutate_( dat, year = ~ year) %>%
+                                dplyr::select_(.dots = c('MONTH', 'year'))
                 }, error = function(e) {
                         warning("invalid year: ", year)
                         return(NULL)
@@ -97,15 +99,15 @@ fars_read_years <- function(years) {
 #' }
 #'
 #' @export
-#' @importFrom dplyr  bind_rows group_by summarize
-#' @importFrom tidyr spread
+#' @importFrom dplyr  bind_rows group_by_ summarize_
+#' @importFrom tidyr spread_
 #' @importFrom magrittr "%>%"
 fars_summarize_years <- function(years) {
         dat_list <- fars_read_years(years)
         dplyr::bind_rows(dat_list) %>%
-                dplyr::group_by(year, MONTH) %>%
-                dplyr::summarize(n = n()) %>%
-                tidyr::spread(year, n)
+                dplyr::group_by_(~ year, ~ MONTH) %>%
+                dplyr::summarize_(n = ~ n()) %>%
+                tidyr::spread_(key_col ='year', value_col = 'n')
 }
 
 #' Plots a map of the accidents for a US state of a year
@@ -126,7 +128,7 @@ fars_summarize_years <- function(years) {
 #' @export
 #' @importFrom maps  map
 #' @importFrom graphics points
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter_
 fars_map_state <- function(state.num, year) {
         filename <- make_filename(year)
         data <- fars_read(filename)
@@ -134,7 +136,7 @@ fars_map_state <- function(state.num, year) {
 
         if(!(state.num %in% unique(data$STATE)))
                 stop("invalid STATE number: ", state.num)
-        data.sub <- dplyr::filter(data, STATE == state.num)
+        data.sub <- dplyr::filter_(data, ~ STATE == state.num)
         if(nrow(data.sub) == 0L) {
                 message("no accidents to plot")
                 return(invisible(NULL))
