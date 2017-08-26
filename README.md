@@ -9,3 +9,6 @@ Main tasks in the project:
 2. writing  one test written using testthat
 3. put the package on GitHub
 4. set up the repository so that the package can be checked and built on Travis
+
+The package build status at [travis:](https://travis-ci.org/cogitoergoread/fars.svg?branch=master)
+
